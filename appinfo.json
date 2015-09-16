@@ -7,7 +7,18 @@
     "longName": "SwissWatch 2.0",
     "projectType": "native",
     "resources": {
-        "media": []
+        "media": [
+            {
+                "file": "images/menu_icon_swiss_german.png",
+                "menuIcon": true,
+                "name": "menuicon",
+                "targetPlatforms": [
+                    "aplite",
+                    "basalt"
+                ],
+                "type": "png"
+            }
+        ]
     },
     "sdkVersion": "3",
     "shortName": "SwissWatch2.0",
