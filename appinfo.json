@@ -1,0 +1,23 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "sihu89+pebble@gmail.com",
+    "longName": "SwissWatch 2.0",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "sdkVersion": "3",
+    "shortName": "SwissWatch2.0",
+    "targetPlatforms": [
+        "aplite",
+        "basalt"
+    ],
+    "uuid": "55b64bd6-ad2a-4339-91af-30aa88798ccb",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": true
+    }
+}
