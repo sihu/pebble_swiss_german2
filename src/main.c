@@ -13,10 +13,10 @@ const char *hour_string[25] = { "zwölfi", "eis","zwei", "drei", "viäri", "fü�
 
 const char *weekday_string[7] = { "So", "Mo", "Di","Mi", "Do", "Fr", "Sa" };
 
-const char *min_string[30] = { "eis", "zwei", "drii", "viar", "füüf", "säx", "siba", "acht", "nüün", "zäh", "elf", "zwölf", 
-    "drizehn", "viarzehn", "viartel", "sechzehn", "sibzehn", "achzehn", "nünzehn", "zwänzg", 
-    "ainazwenzg", "zwaiazwenzg", "driazwenzg", "viarazwenzg", "füfazwenzg", "sexazwenzg", 
-    "sibanazwenzg", "achtazwenzg", "nünazwenzg", "halb" };
+const char *min_string[30] = { "\neis ", "\nzwei ", "\ndrii ", "\nviar ", "\nfüüf ", "\nsäx ", "\nsiba ", "\nacht ", "\nnüün ", "\nzäh ", "\nelf ", "\nzwölf ", 
+    "\ndrizehn ", "\nviarzehn ", "\nviartel ", "\nsechzehn", "\nsibzehn ", "\nachzehn ", "\nnünzehn ", "\nzwänzg ", 
+    "ainazwenzg\n", "zwaiazwenzg\n", "driazwenzg\n", "viarazwenzg\n", "füfazwenzg\n", "sexazwenzg\n", 
+    "sibanazwenzg\n", "achtazwenzg", "nünazwenzg\n", "\nhalb" };
 
 
 static void handle_battery(BatteryChargeState charge_state) {
@@ -100,13 +100,13 @@ static void main_window_load(Window *window) {
   //handle_bluetooth(bluetooth_connection_service_peek());
 
   // Minute as Word ()
-  s_minutetext_layer = text_layer_create(GRect(8, 30, bounds.size.w, 34));
+  s_minutetext_layer = text_layer_create(GRect(8, 12, bounds.size.w, 68));
   text_layer_set_text_color(s_minutetext_layer, GColorWhite);
   text_layer_set_background_color(s_minutetext_layer, GColorClear);
-  text_layer_set_font(s_minutetext_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
+  text_layer_set_font(s_minutetext_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28));
   
   // Hour as Word ()
-  s_hourtext_layer = text_layer_create(GRect(5, 50, bounds.size.w, 48));
+  s_hourtext_layer = text_layer_create(GRect(5, 60, bounds.size.w, 48));
   text_layer_set_text_color(s_hourtext_layer, GColorWhite);
   text_layer_set_background_color(s_hourtext_layer, GColorClear);
   text_layer_set_font(s_hourtext_layer, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
