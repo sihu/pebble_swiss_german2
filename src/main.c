@@ -67,20 +67,19 @@ static void canvas_update_proc(Layer *this_layer, GContext *ctx) {
   graphics_fill_rect(ctx, GRect(bounds.size.w/4*3, 0, bounds.size.w/4*battery/100, 5), 0, GCornerNone);
 }
 
-static void handle_hour_tick(struct tm *tick_time, TimeUnits units_changed) {
-  static char s_cw_text[] = "00";
-  strftime(s_cw_text, sizeof(s_cw_text), "%V", tick_time);
-  text_layer_set_text(s_cw_layer, s_cw_text);
-}
-
 static void handle_second_tick(struct tm* tick_time, TimeUnits units_changed) {
   // Needs to be static because it's used by the system later.
   static char s_time_text[] = "00";
+  static char s_cw_text[] = "00";
+
   //time_t currentmktime(struct tm * timeptr)
   //snprintf(s_min_text, sizeof(battery_text), "%d%%", charge_state.charge_percent);
   
   strftime(s_time_text, sizeof(s_time_text), "%S", tick_time);
   text_layer_set_text(s_time_layer, s_time_text);
+  
+  strftime(s_cw_text, sizeof(s_cw_text), "%V", tick_time);
+  text_layer_set_text(s_cw_layer, s_cw_text);
   
   handle_battery(battery_state_service_peek());
   
@@ -149,11 +148,7 @@ static void main_window_load(Window *window) {
   struct tm *current_time = localtime(&now);
   handle_second_tick(current_time, SECOND_UNIT);
   handle_minute_tick(current_time, MINUTE_UNIT);
-  handle_hour_tick(current_time, HOUR_UNIT);
-
   tick_timer_service_subscribe(SECOND_UNIT, handle_second_tick);
-  tick_timer_service_subscribe(HOUR_UNIT, handle_hour_tick);
-
  
   battery_state_service_subscribe(handle_battery);
 
