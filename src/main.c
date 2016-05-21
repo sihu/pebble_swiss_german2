@@ -1,7 +1,7 @@
 #include <pebble.h>
   
 static Window *s_main_window;
-static TextLayer *s_time_layer, *s_datetext_layer, *s_minutetext_layer, *s_hourtext_layer, *s_connection_layer;
+static TextLayer *s_time_layer, *s_datetext_layer, *s_minutetext_layer, *s_hourtext_layer, *s_cw_layer, *s_connection_layer;
 static Layer *s_canvas_layer;
 
 // performance
@@ -10,16 +10,14 @@ static int hour = 0;
 static int battery = 100;
 
 // dialect
-const char *hour_string[25] = { "zwölfi", "eis","zwai", "drüü", "viari", "füüfi", "säxi",
-		 "sibni", "achti", "nüni", "zehni", "ölfi"};
+const char *hour_string[12] = { "zwölfi", "eis","zwai", "drüü", "viari", "füüfi", "säxi",
+		 "sibni", "achti", "nüni", "zehni", "elfi"};
 
 const char *weekday_string[7] = { "So", "Mo", "Di","Mi", "Do", "Fr", "Sa" };
 
-const char *min_string[30] = { "\neis ", "\nzwai ", "\ndrüü ", "\nviar ", "\nfüüf ", "\nsäx ", "\nsiba ", "\nacht ", "\nnüün ", "\nzäh ", "\nelf ", "\nzwölf ", 
-    "\ndrizehn ", "\nviarzehn ", "\nviartel ", "\nsechzehn", "\nsibzehn ", "\nachzehn ", "\nnünzehn ", "\nzwänzg ", 
-    "\n21 ", "22\n", "driazwenzg\n", "viarazwenzg\n", "füfazwenzg\n", "sexazwenzg\n", 
-    "sibanazwenzg\n", "achtazwenzg\n", "nünazwenzg\n", "\nhalb" };
-
+const char *min_string[31] = { "punkt", "eis", "zwai", "drüü", "viar", "füüf", "säx", "siba", "acht", "nüün", "zäh", "elf", "zwölf", 
+    "drizehn", "viarzehn", "viartel", "sechzehn", "sibzehn", "achzehn", "nünzehn", "zwänzg", 
+    "21", "22", "23", "24", "-", "-", "-", "-", "-", "halb" };
 
 static void handle_battery(BatteryChargeState charge_state) {
   battery = charge_state.charge_percent;
@@ -34,22 +32,20 @@ static void handle_minute_tick(struct tm* tick_time, TimeUnits units_changed) {
 
   //time_t currentmktime(struct tm * timeptr)
   min = tick_time->tm_min;
-  hour = tick_time->tm_hour > 11 ? tick_time->tm_hour-12 : tick_time->tm_hour;  
-
-  if(min > 0){
-    if(min > 30) {
-      strcpy(minute_text , min_string[60-min-1]);
-      strcat(minute_text , "vor");
-    } else if (min < 30){
-      strcpy(minute_text , min_string[min-1]);
-      strcat(minute_text , "ab");
-    } else {
-      strcpy(minute_text , min_string[min-1]);
-    }
+  hour = tick_time->tm_hour;  
+  
+  if (min != 0 && min < 24){
+    snprintf(minute_text, sizeof(minute_text), "%s ab", min_string[min]);
+  } else if (min > 24 && min < 30){
+    snprintf(minute_text, sizeof(minute_text), "%s vor %s", min_string[30-min], min_string[30]);
+  } else if (min > 30 && min < 36){
+    snprintf(minute_text, sizeof(minute_text), "%s ab %s", min_string[30-60+min], min_string[30]);
+  } else if(min > 35) {
+    snprintf(minute_text, sizeof(minute_text), "%s vor", min_string[60-min]);
   } else {
-    strcat(minute_text , "");
+    snprintf(minute_text, sizeof(minute_text), "%s", min_string[min]);
   }
-  strcpy(hour_text , hour_string[min >= 30 ? hour+1 : hour]);
+  snprintf(hour_text, sizeof(hour_text), "%s", hour_string[min >= 25 ? (hour+1)%12 : hour%12]);
   
   strcpy(date_text , weekday_string[tick_time->tm_wday]);
   snprintf(day_text, sizeof(day_text), " %02d", tick_time->tm_mday);
@@ -69,6 +65,12 @@ static void canvas_update_proc(Layer *this_layer, GContext *ctx) {
   // Draw the 'stalk'
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_rect(ctx, GRect(bounds.size.w/4*3, 0, bounds.size.w/4*battery/100, 5), 0, GCornerNone);
+}
+
+static void handle_hour_tick(struct tm *tick_time, TimeUnits units_changed) {
+  static char s_cw_text[] = "00";
+  strftime(s_cw_text, sizeof(s_cw_text), "%V", tick_time);
+  text_layer_set_text(s_cw_layer, s_cw_text);
 }
 
 static void handle_second_tick(struct tm* tick_time, TimeUnits units_changed) {
@@ -106,7 +108,7 @@ static void main_window_load(Window *window) {
   //handle_bluetooth(bluetooth_connection_service_peek());
 
   // Minute as Word ()
-  s_minutetext_layer = text_layer_create(GRect(8, 12, bounds.size.w, 68));
+  s_minutetext_layer = text_layer_create(GRect(8, 40, bounds.size.w, 34));
   text_layer_set_text_color(s_minutetext_layer, GColorWhite);
   text_layer_set_background_color(s_minutetext_layer, GColorClear);
   text_layer_set_font(s_minutetext_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28));
@@ -123,7 +125,6 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(s_datetext_layer, GColorClear);
   text_layer_set_font(s_datetext_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28));
 
-  
   // Time digital
   s_time_layer = text_layer_create(GRect(5, 110, bounds.size.w, 34));
   text_layer_set_text_color(s_time_layer, GColorWhite);
@@ -135,15 +136,23 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, s_canvas_layer);
   layer_set_update_proc(s_canvas_layer, canvas_update_proc);
   
+  // Calendar week
+  s_cw_layer = text_layer_create(GRect(-20, 0, bounds.size.w, bounds.size.h));
+  text_layer_set_text_color(s_cw_layer, GColorWhite);
+  text_layer_set_background_color(s_cw_layer, GColorClear);
+  text_layer_set_font(s_cw_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
+  text_layer_set_text_alignment(s_cw_layer, GTextAlignmentRight);
+
   // Ensures time is displayed immediately (will break if NULL tick event accessed).
   // (This is why it's a good idea to have a separate routine to do the update itself.)
   time_t now = time(NULL);
   struct tm *current_time = localtime(&now);
   handle_second_tick(current_time, SECOND_UNIT);
   handle_minute_tick(current_time, MINUTE_UNIT);
-
+  handle_hour_tick(current_time, HOUR_UNIT);
 
   tick_timer_service_subscribe(SECOND_UNIT, handle_second_tick);
+  tick_timer_service_subscribe(HOUR_UNIT, handle_hour_tick);
 
  
   battery_state_service_subscribe(handle_battery);
@@ -153,6 +162,7 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, text_layer_get_layer(s_minutetext_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_hourtext_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_datetext_layer));
+  layer_add_child(window_layer, text_layer_get_layer(s_cw_layer));
 }
 
 static void main_window_unload(Window *window) {

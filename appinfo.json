@@ -4,6 +4,7 @@
         ""
     ],
     "companyName": "sihu",
+    "enableMultiJS": false,
     "longName": "SwissWatch 2.0",
     "projectType": "native",
     "resources": {
@@ -16,7 +17,7 @@
                     "aplite",
                     "basalt"
                 ],
-                "type": "png"
+                "type": "bitmap"
             }
         ]
     },
